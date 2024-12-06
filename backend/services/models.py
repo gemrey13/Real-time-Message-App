@@ -10,7 +10,7 @@ class UserManager(BaseUserManager):
             raise ValueError("Users must have an email address")
         
         email = self.normalize_email(email)
-        user = self.model(email, **extra_fields)
+        user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -29,7 +29,7 @@ class User(AbstractBaseUser, PermissionError):
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
 
-    object = UserManager()
+    objects = UserManager()
 
     USERNAME_FIELD = 'email'
 
