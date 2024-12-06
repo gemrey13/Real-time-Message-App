@@ -18,6 +18,14 @@ export default function SignupForm() {
                         <Input id="email" type="email" placeholder="m@example.com" required />
                     </div>
                     <div className="grid gap-2">
+                        <Label htmlFor="first_name">First Name</Label>
+                        <Input id="first_name" type="text" placeholder="John" required />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="last_name">Last Name</Label>
+                        <Input id="last_name" type="text" placeholder="Cena" required />
+                    </div>
+                    <div className="grid gap-2">
                         <Label htmlFor="password">Password</Label>
                         <Input id="password" type="password" required />
                     </div>
