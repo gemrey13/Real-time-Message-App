@@ -31,6 +31,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'backend.urls'
 
+AUTH_USER_MODEL = "services.User"
 
 CHANNEL_LAYERS = {
     "default": {
