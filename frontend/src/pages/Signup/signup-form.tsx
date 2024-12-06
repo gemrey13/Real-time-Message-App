@@ -7,7 +7,7 @@ import axios from "axios";
 import React, { useState, FormEvent } from "react";
 
 export default function SignupForm() {
-    const BASE_URL = "http://127.0.0.1:8000/";
+    const BASE_URL = import.meta.env.VITE_PUBLIC_BASE_URL;
     const [formData, setFormData] = useState({
         email: "",
         first_name: "",
