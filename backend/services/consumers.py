@@ -4,7 +4,6 @@ import json
 class PersonalChatConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         request_user = self.scope["user"]
-        print(request_user.email)
         if request_user.is_authenticated:
             chat_with_user = self.scope["url_route"]["kwargs"]["id"]
             user_ids = [int(request_user.id), int(chat_with_user)]
