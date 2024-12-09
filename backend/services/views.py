@@ -33,7 +33,7 @@ User = get_user_model()
 
 
 @api_view(["GET"])
-@permission_classes(IsAuthenticated)
+@permission_classes([IsAuthenticated])
 def get_user_list(request):
     try:
         user_obj = User.objects.exclude(id=request.user.id)

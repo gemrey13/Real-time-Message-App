@@ -9,7 +9,6 @@ from datetime import datetime, timedelta, timezone
 User = get_user_model()
 
 class JWTAuthentication(BaseAuthentication):
-
     def authenticate(self, request):
         token = self.extract_token(request)
         if token is None:
@@ -21,9 +20,10 @@ class JWTAuthentication(BaseAuthentication):
             
             user_id = payload["id"]
             user = User.objects.get(id=user_id)
-            return user
-        except (InvalidTokenError, ExpiredSignatureError, User.DoesNotExist):
-            raise AuthenticationFailed("Invalid Token!")
+
+            return (user, token)
+        except (InvalidTokenError, ExpiredSignatureError, User.DoesNotExist) as e:
+            raise AuthenticationFailed(f"Invalid Token: {str(e)}")
 
     def verify_token(self, payload):
         if "exp" not in payload:
