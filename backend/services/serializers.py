@@ -60,3 +60,10 @@ class LoginSerializer(serializers.ModelSerializer):
 
 
         # {"email": "gem@gmail.com", "password": "123"}
+
+
+class UserGetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ["email", "first_name", "last_name", "id"]
+        extra_kwargs = {"id": {"read_only": True}}
