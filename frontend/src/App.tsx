@@ -1,3 +1,4 @@
+import ProtectedRoute from "@/components/ProtectedRoute";
 import MainLayout from "@/layout/MainLayout";
 import Dashboard from "@/pages/Dashboard";
 import { SignIn } from "@/pages/Sign-In";
@@ -7,8 +8,10 @@ export default function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<MainLayout />}>
-                    <Route index element={<Dashboard />} />
+                <Route element={<ProtectedRoute />}>
+                    <Route path="/" element={<MainLayout />}>
+                        <Route index element={<Dashboard />} />
+                    </Route>
                 </Route>
 
                 <Route path="/sign-in" element={<SignIn />} />
