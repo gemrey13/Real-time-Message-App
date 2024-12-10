@@ -17,18 +17,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
     setNewMessage(event.target.value);
   };
 
-  const handleSendMessage = () => {
-    if (newMessage.trim() && socket) {
-      // Send the message via WebSocket if it's connected
-      socket.send(JSON.stringify({ message: newMessage }));
 
-      // Trigger the parent callback to handle the message
-      onMessageSent();
-
-      // Clear the message input
-      setNewMessage("");
-    }
-  };
 
   return (
     <div className="message-input bg-white p-4 border-t border-slate-300 flex items-center">
@@ -39,7 +28,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         placeholder="Type your message"
         name="message"
       />
-      <Button className="px-3 py-5" onClick={handleSendMessage}>
+      <Button className="px-3 py-5" onClick={onMessageSent}>
         Send
       </Button>
     </div>

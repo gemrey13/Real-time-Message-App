@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
-
+from .models import Chat
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -67,3 +67,15 @@ class UserGetSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = ["email", "first_name", "last_name", "id"]
         extra_kwargs = {"id": {"read_only": True}}
+
+
+class ChatSerializer(serializers.ModelSerializer):
+    sender_email = serializers.EmailField(source="sender.email")
+    recipient_email = serializers.EmailField(source="recipient.email")
+    sender_name = serializers.CharField(source="sender.get_full_name")
+    recipient_name = serializers.CharField(source="recipient.get_full_name")
+    timestamp = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+
+    class Meta:
+        model = Chat
+        fields = ['sender_email', 'recipient_email', 'sender_name', 'recipient_name', 'message', 'timestamp']
