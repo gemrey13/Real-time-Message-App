@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 // This is sample data
 const data = {
@@ -184,19 +185,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <SidebarGroup className="px-0">
                         <SidebarGroupContent>
                             {mails.map((mail) => (
-                                <a
-                                    href="#"
+                                <Link
+                                    to={`/chat/${mail.id}`}
                                     key={mail.email}
                                     className="flex flex-col items-start gap-2 whitespace-nowrap border-b p-4 text-sm leading-tight last:border-b-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
                                     <div className="flex w-full items-center gap-2">
-                                        <span>{mail?.first_name} {mail?.last_name}</span>{" "}
+                                        <span>{mail?.first_name} {mail?.last_name}</span>
                                         <span className="ml-auto text-xs">{mail.date}</span>
                                     </div>
                                     <span className="font-medium">{mail.id}</span>
                                     <span className="line-clamp-2 w-[260px] whitespace-break-spaces text-xs">
                                         {mail.email}
                                     </span>
-                                </a>
+                                </Link>
                             ))}
                         </SidebarGroupContent>
                     </SidebarGroup>

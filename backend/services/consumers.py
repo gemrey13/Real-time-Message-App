@@ -39,6 +39,7 @@ class PersonalChatConsumer(AsyncJsonWebsocketConsumer):
             
 
             current_user = self.scope["user"]
+
             user_email = current_user.email
             user_full_name = current_user.get_full_name()
 

@@ -1,5 +1,3 @@
-import ChatArea from "@/components/chat/ChatArea";
-
 export default function Dashboard() {
     return (
         <>
@@ -8,7 +6,8 @@ export default function Dashboard() {
                     <div key={index} className="aspect-video h-12 w-full rounded-lg bg-muted/50" />
                 ))} */}
 
-                <ChatArea/>
+                Hello
+
             </div>
         </>
     );
