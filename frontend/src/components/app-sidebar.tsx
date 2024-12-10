@@ -89,7 +89,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         'Content-Type': 'application/json',
                     },
                 });
-                console.log(response.data);
                 setMails(response.data)
             } catch (error) {
                 console.error("Error fetching users:", error);

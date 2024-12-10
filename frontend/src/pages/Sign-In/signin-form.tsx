@@ -32,7 +32,6 @@ export default function SignInForm() {
                     'Content-Type': 'application/json'
                 }
             });
-            console.log("Login successful", response.data);
             localStorage.setItem('token', response.data.token);
             navigate('/');
         } catch (err) {
