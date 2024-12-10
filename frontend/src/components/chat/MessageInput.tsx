@@ -1,14 +1,12 @@
 import { Button } from "@/components/ui/button";
 
 interface MessageInputProps {
-  socket: WebSocket | null;
   onMessageSent: () => void;
   newMessage: string;
   setNewMessage: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
-  socket,
   onMessageSent,
   newMessage,
   setNewMessage,

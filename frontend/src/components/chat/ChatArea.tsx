@@ -6,7 +6,7 @@ import { useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
 interface MessageType {
-    sender_email: string;
+    current_user_email: string;
     recipient_email: string;
     sender_name: string;
     recipient_name: string;
@@ -30,12 +30,12 @@ const ChatArea: React.FC = () => {
 
     useEffect(() => {
         if (!token) {
-            console.error("No token found, can't establish WebSocket connection");
+            console.log("No token found, can't establish WebSocket connection");
             return;
         }
 
         const decodedToken: any = jwtDecode(token);
-        const emailFromToken = decodedToken.email; 
+        const emailFromToken = decodedToken.email;
         setCurrentUserEmail(emailFromToken);
 
         const socketConnection = new WebSocket(
@@ -48,25 +48,30 @@ const ChatArea: React.FC = () => {
         };
 
         socketConnection.onmessage = (event) => {
+            console.log('event data, ', event.data)
             const data = JSON.parse(event.data);
             console.log("Received message:", data);
-        
-            const isCurrentUserMessage = data.sender_email === emailFromToken;
-        
+
+            const isCurrentUserMessage = data.current_user_email === emailFromToken;
+            console.log('isCurrentUserMessage, ', isCurrentUserMessage)
+            console.log('emailFromToken, ', isCurrentUserMessage)
+            console.log('socketConnection', data)
+            const new_message = {
+                current_user_email: data.current_user_email,
+                recipient_email: data.recipient_email,
+                sender_name: data.sender_name,
+                recipient_name: data.recipient_name,
+                message: data.message,
+                timestamp: data.timestamp,
+                isCurrentUserMessage,
+            }
+
             setMessages((prevMessages) => [
                 ...prevMessages,
-                {
-                    sender_email: data.sender_email,
-                    recipient_email: data.recipient_email,
-                    sender_name: data.sender_name,
-                    recipient_name: data.recipient_name,
-                    message: data.message,
-                    timestamp: data.timestamp,
-                    isCurrentUserMessage,
-                },
+                new_message
             ]);
 
-            scrollToBottom(); 
+            scrollToBottom();
         };
 
         socketConnection.onerror = (error) => {
@@ -80,7 +85,7 @@ const ChatArea: React.FC = () => {
             console.log("WebSocket connection closed:", event);
             setLoading(false);
         };
-    }, [userID, token]);
+    }, [userID]);
 
     useEffect(() => {
         const fetchMessages = async () => {
@@ -125,25 +130,13 @@ const ChatArea: React.FC = () => {
             const messageData = {
                 message: newMessage,
             };
-    
+            
             socket.send(JSON.stringify(messageData));
-    
-            setMessages((prevMessages) => [
-                ...prevMessages,
-                {
-                    sender_email: currentUserEmail, 
-                    recipient_email: "",
-                    sender_name: "You", 
-                    recipient_name: "",
-                    message: newMessage,
-                    timestamp: new Date().toISOString(),
-                    isCurrentUserMessage: true, 
-                },
-            ]);
-            scrollToBottom(); 
-            setNewMessage(""); 
+            scrollToBottom();
         }
     };
+
+    console.log('messages on load, ', messages)
 
     return (
         <div className="chat-area flex flex-col h-full">
@@ -154,14 +147,19 @@ const ChatArea: React.FC = () => {
             ) : (
                 <>
                     <div className="messages p-5 flex-1 overflow-y-auto">
-                        {messages.map((messageObj, index) => (
-                            <Message
-                                key={index}
-                                text={messageObj.message}
-                                status={messageObj.isCurrentUserMessage ? "sent" : "received"}
-                            />
-                        ))}
-                        <div ref={messagesEndRef} /> 
+                        {messages.map((messageObj, index) => {
+                            // console.log(`currentMessage, ${messageObj.message}`, messageObj)
+                            return (
+                                    <Message
+                                        key={index}
+                                        text={messageObj.message}
+                                        status={
+                                            messageObj.isCurrentUserMessage ? "sent" : "received"
+                                        }
+                                    />
+                            );
+                        })}
+                        <div ref={messagesEndRef} />
                     </div>
 
                     <MessageInput

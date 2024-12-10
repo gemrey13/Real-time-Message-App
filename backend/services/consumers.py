@@ -54,6 +54,7 @@ class PersonalChatConsumer(AsyncJsonWebsocketConsumer):
                 {
                     "type": "chat_message",
                     "message": message,
+                    "message_id": chat_instance.id,
                     "current_user_email": user_email,
                     "sender_name": user_full_name,
                     "recipient_email": recipient_email,
@@ -78,6 +79,7 @@ class PersonalChatConsumer(AsyncJsonWebsocketConsumer):
 
     async def chat_message(self, event):
         message = event["message"]
+        message_id = event["message_id"]
         current_user_email = event["current_user_email"]
         sender_name = event["sender_name"]
         recipient_email = event["recipient_email"]
@@ -86,6 +88,7 @@ class PersonalChatConsumer(AsyncJsonWebsocketConsumer):
 
         await self.send(text_data=json.dumps({
             "message": message,
+            "message_id": message_id,
             "current_user_email": current_user_email,
             "sender_name": sender_name,
             "recipient_email": recipient_email,
