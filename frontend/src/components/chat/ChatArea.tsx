@@ -10,6 +10,7 @@ interface MessageType {
     current_user_email: string;
     recipient_email: string;
     sender_name: string;
+    sender_email: string
     recipient_name: string;
     message: string;
     timestamp: string;
@@ -57,6 +58,7 @@ const ChatArea: React.FC = () => {
                 const new_message: MessageType = {
                     id: data.message_id, 
                     current_user_email: data.current_user_email,
+                    sender_email: data.sender_email,
                     recipient_email: data.recipient_email,
                     sender_name: data.sender_name,
                     recipient_name: data.recipient_name,
@@ -140,7 +142,7 @@ const ChatArea: React.FC = () => {
             scrollToBottom();
         }
     };
-    
+
     return (
         <div className="chat-area flex flex-col h-full">
             {loading ? (
@@ -150,13 +152,17 @@ const ChatArea: React.FC = () => {
             ) : (
                 <>
                     <div className="messages p-5 flex-1 overflow-y-auto">
-                        {messages.map((messageObj) => (
+                        {messages.map((messageObj) => {
+                                console.log(messageObj)
+
+                         return (
                             <Message
                                 key={messageObj.id}
                                 text={messageObj.message}
+                                messageOwner={messageObj.isCurrentUserMessage ? "You" : messageObj.sender_email}
                                 status={messageObj.isCurrentUserMessage ? "sent" : "received"}
                             />
-                        ))}
+                        )})}
                         <div ref={messagesEndRef} />
                     </div>
 
