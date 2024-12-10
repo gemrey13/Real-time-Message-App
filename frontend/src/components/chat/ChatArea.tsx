@@ -1,10 +1,9 @@
 import Message from "@/components/chat/Message";
 import MessageInput from "@/components/chat/MessageInput";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-
 
 interface MessageType {
     sender_email: string;
@@ -25,6 +24,7 @@ const ChatArea: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [currentUserEmail, setCurrentUserEmail] = useState<string>("");
 
+    const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
     const token = localStorage.getItem("token");
 
@@ -50,25 +50,23 @@ const ChatArea: React.FC = () => {
         socketConnection.onmessage = (event) => {
             const data = JSON.parse(event.data);
             console.log("Received message:", data);
-
+        
             const isCurrentUserMessage = data.sender_email === emailFromToken;
+        
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                {
+                    sender_email: data.sender_email,
+                    recipient_email: data.recipient_email,
+                    sender_name: data.sender_name,
+                    recipient_name: data.recipient_name,
+                    message: data.message,
+                    timestamp: data.timestamp,
+                    isCurrentUserMessage,
+                },
+            ]);
 
-            if (!isCurrentUserMessage) {
-                setMessages((prevMessages) => [
-                    ...prevMessages,
-                    {
-                        sender_email: data.sender_email,
-                        recipient_email: data.recipient_email,
-                        sender_name: data.sender_name,
-                        recipient_name: data.recipient_name,
-                        message: data.message,
-                        timestamp: data.timestamp,
-                        isCurrentUserMessage,
-                    },
-                ]);
-            }
-
-           
+            scrollToBottom(); 
         };
 
         socketConnection.onerror = (error) => {
@@ -82,7 +80,9 @@ const ChatArea: React.FC = () => {
             console.log("WebSocket connection closed:", event);
             setLoading(false);
         };
+    }, [userID, token]);
 
+    useEffect(() => {
         const fetchMessages = async () => {
             try {
                 const response = await axios.get(`http://127.0.0.1:8000/api/messages/${userID}/`, {
@@ -103,6 +103,7 @@ const ChatArea: React.FC = () => {
                     };
                 });
                 setMessages(updatedMessages);
+                scrollToBottom();
                 console.log("Initial Data:", response.data);
             } catch (error) {
                 console.error("Error fetching messages:", error);
@@ -111,47 +112,56 @@ const ChatArea: React.FC = () => {
         };
 
         fetchMessages();
-    }, [userID, token]);
+    }, []);
+
+    const scrollToBottom = () => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+    };
 
     const handleSendMessage = () => {
         if (newMessage.trim() && socket) {
             const messageData = {
                 message: newMessage,
             };
-
+    
             socket.send(JSON.stringify(messageData));
+    
             setMessages((prevMessages) => [
                 ...prevMessages,
                 {
-                    sender_email: currentUserEmail,
+                    sender_email: currentUserEmail, 
                     recipient_email: "",
-                    sender_name: "You",
+                    sender_name: "You", 
                     recipient_name: "",
                     message: newMessage,
                     timestamp: new Date().toISOString(),
                     isCurrentUserMessage: true, 
                 },
             ]);
-            // setNewMessage("");
+            scrollToBottom(); 
+            setNewMessage(""); 
         }
     };
 
     return (
         <div className="chat-area flex flex-col h-full">
             {loading ? (
-                <div className="flex justify-center items-center h-full">
+                <div className="flex justify-center items-center">
                     <div className="w-16 h-16 border-4 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
                 </div>
             ) : (
                 <>
-                    <div className="messages overflow-y-auto p-5 flex-1">
-                    {messages.map((messageObj, index) => (
+                    <div className="messages p-5 flex-1 overflow-y-auto">
+                        {messages.map((messageObj, index) => (
                             <Message
                                 key={index}
                                 text={messageObj.message}
                                 status={messageObj.isCurrentUserMessage ? "sent" : "received"}
                             />
                         ))}
+                        <div ref={messagesEndRef} /> 
                     </div>
 
                     <MessageInput
