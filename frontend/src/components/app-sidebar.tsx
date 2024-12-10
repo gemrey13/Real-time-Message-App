@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 // This is sample data
 const data = {
@@ -184,7 +184,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <SidebarGroup className="px-0">
                         <SidebarGroupContent>
                             {mails.map((mail) => (
-                                <Link
+                                <NavLink
                                     to={`/chat/${mail.id}`}
                                     key={mail.email}
                                     className="flex flex-col items-start gap-2 whitespace-nowrap border-b p-4 text-sm leading-tight last:border-b-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
@@ -196,7 +196,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                     <span className="line-clamp-2 w-[260px] whitespace-break-spaces text-xs">
                                         {mail.email}
                                     </span>
-                                </Link>
+                                </NavLink>
                             ))}
                         </SidebarGroupContent>
                     </SidebarGroup>

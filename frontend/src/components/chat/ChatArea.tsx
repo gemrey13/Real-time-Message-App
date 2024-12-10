@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
 interface MessageType {
+    id?: number;
     current_user_email: string;
     recipient_email: string;
     sender_name: string;
@@ -22,9 +23,9 @@ const ChatArea: React.FC = () => {
     const [newMessage, setNewMessage] = useState<string>("");
 
     const [loading, setLoading] = useState<boolean>(true);
-    const [currentUserEmail, setCurrentUserEmail] = useState<string>("");
 
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const existingMessageIdsRef = useRef<Set<number>>(new Set<number>());
 
     const token = localStorage.getItem("token");
 
@@ -36,7 +37,6 @@ const ChatArea: React.FC = () => {
 
         const decodedToken: any = jwtDecode(token);
         const emailFromToken = decodedToken.email;
-        setCurrentUserEmail(emailFromToken);
 
         const socketConnection = new WebSocket(
             `ws://127.0.0.1:8000/ws/chat/${userID}/?token=${token}`
@@ -48,30 +48,32 @@ const ChatArea: React.FC = () => {
         };
 
         socketConnection.onmessage = (event) => {
-            console.log('event data, ', event.data)
             const data = JSON.parse(event.data);
             console.log("Received message:", data);
 
-            const isCurrentUserMessage = data.current_user_email === emailFromToken;
-            console.log('isCurrentUserMessage, ', isCurrentUserMessage)
-            console.log('emailFromToken, ', isCurrentUserMessage)
-            console.log('socketConnection', data)
-            const new_message = {
-                current_user_email: data.current_user_email,
-                recipient_email: data.recipient_email,
-                sender_name: data.sender_name,
-                recipient_name: data.recipient_name,
-                message: data.message,
-                timestamp: data.timestamp,
-                isCurrentUserMessage,
+            if (data.message_id && !existingMessageIdsRef.current.has(data.message_id)) {
+                const isCurrentUserMessage = data.current_user_email === emailFromToken;
+
+                const new_message: MessageType = {
+                    id: data.message_id, 
+                    current_user_email: data.current_user_email,
+                    recipient_email: data.recipient_email,
+                    sender_name: data.sender_name,
+                    recipient_name: data.recipient_name,
+                    message: data.message,
+                    timestamp: data.timestamp,
+                    isCurrentUserMessage,
+                };
+
+                setMessages((prevMessages) => {
+                    const updatedMessages = [...prevMessages, new_message];
+                    return updatedMessages;
+                });
+
+                existingMessageIdsRef.current.add(data.message_id);
+
+                scrollToBottom();
             }
-
-            setMessages((prevMessages) => [
-                ...prevMessages,
-                new_message
-            ]);
-
-            scrollToBottom();
         };
 
         socketConnection.onerror = (error) => {
@@ -98,18 +100,21 @@ const ChatArea: React.FC = () => {
                 });
 
                 const fetchedEmail = response.data.current_user_email;
-                setCurrentUserEmail(fetchedEmail);
 
                 const updatedMessages = response.data.messages.map((message: any) => {
                     const isCurrentUserMessage = message.sender_email === fetchedEmail;
                     return {
                         ...message,
+                        id: message.id,
                         isCurrentUserMessage,
                     };
                 });
+
+                const messageIds = new Set<number>(updatedMessages.map((m: any) => m.id as number));
+                existingMessageIdsRef.current = messageIds;
+
                 setMessages(updatedMessages);
                 scrollToBottom();
-                console.log("Initial Data:", response.data);
             } catch (error) {
                 console.error("Error fetching messages:", error);
                 setLoading(false);
@@ -117,7 +122,7 @@ const ChatArea: React.FC = () => {
         };
 
         fetchMessages();
-    }, []);
+    }, [userID]);
 
     const scrollToBottom = () => {
         if (messagesEndRef.current) {
@@ -130,14 +135,12 @@ const ChatArea: React.FC = () => {
             const messageData = {
                 message: newMessage,
             };
-            
+
             socket.send(JSON.stringify(messageData));
             scrollToBottom();
         }
     };
-
-    console.log('messages on load, ', messages)
-
+    
     return (
         <div className="chat-area flex flex-col h-full">
             {loading ? (
@@ -147,23 +150,17 @@ const ChatArea: React.FC = () => {
             ) : (
                 <>
                     <div className="messages p-5 flex-1 overflow-y-auto">
-                        {messages.map((messageObj, index) => {
-                            // console.log(`currentMessage, ${messageObj.message}`, messageObj)
-                            return (
-                                    <Message
-                                        key={index}
-                                        text={messageObj.message}
-                                        status={
-                                            messageObj.isCurrentUserMessage ? "sent" : "received"
-                                        }
-                                    />
-                            );
-                        })}
+                        {messages.map((messageObj) => (
+                            <Message
+                                key={messageObj.id}
+                                text={messageObj.message}
+                                status={messageObj.isCurrentUserMessage ? "sent" : "received"}
+                            />
+                        ))}
                         <div ref={messagesEndRef} />
                     </div>
 
                     <MessageInput
-                        socket={socket}
                         onMessageSent={handleSendMessage}
                         newMessage={newMessage}
                         setNewMessage={setNewMessage}
