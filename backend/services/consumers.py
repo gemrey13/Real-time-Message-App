@@ -13,7 +13,6 @@ class PersonalChatConsumer(AsyncJsonWebsocketConsumer):
         other_user_id = self.scope["url_route"]["kwargs"]["id"]
 
         if request_user.is_authenticated:
-            chat_with_user = self.scope["url_route"]["kwargs"]["id"]
 
             if int(current_user_id) > int(other_user_id):
                 self.room_name = f"{current_user_id}-{other_user_id}"
@@ -34,14 +33,16 @@ class PersonalChatConsumer(AsyncJsonWebsocketConsumer):
             data = json.loads(text_data)  
 
             message = data.get("message")
-            user_data = data.get("user", {})
-            user_email = user_data.get("email")
-            user_full_name = user_data.get("fullName")
+            
+            if not message:
+                raise ValueError("Invalid message received")
+            
+
+            current_user = self.scope["user"]
+            user_email = current_user.email
+            user_full_name = current_user.get_full_name()
 
             recipient_id = self.scope["url_route"]["kwargs"]["id"]
-
-            if not user_email or not message:
-                raise ValueError("Invalid data received")
 
             await self.save_message(user_email, recipient_id, self.room_group_name, message)
 
@@ -58,7 +59,10 @@ class PersonalChatConsumer(AsyncJsonWebsocketConsumer):
             await self.send(text_data=json.dumps({
                 "error": "Invalid JSON data received"
             }))
-
+        except Exception as e:
+            await self.send(text_data=json.dumps({
+                "error": f"An unexpected error occurred: {str(e)}"
+            }))
 
     async def chat_message(self, event):
         message = event["message"]
@@ -76,17 +80,10 @@ class PersonalChatConsumer(AsyncJsonWebsocketConsumer):
             self.channel_name
         )
 
-    async def chat_message(self, event):
-        message = event["message"]
-        await self.send(text_data=json.dumps({
-            "message": message
-        }))
-
     @database_sync_to_async
     def save_message(self, sender_email, recipient_id, thread_name, message):
         try:
             sender = User.objects.get(email=sender_email)
-            
             recipient = User.objects.get(id=recipient_id)
 
             Chat.objects.create(sender=sender, recipient=recipient, message=message, thread_name=thread_name)
